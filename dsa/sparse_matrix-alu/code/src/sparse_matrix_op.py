@@ -160,19 +160,19 @@ def main():
             raise ValueError("Invalid choice. Please enter 1, 2, or 3.")
 
         # Load matrices from files
-        matrix1 = SparseMatrix(filePath="dsa-sparse_matrix-alu/dsa/sparse_matrix-alu/sample_inputs/matrixfile1.txt")
-        matrix2 = SparseMatrix(filePath="dsa-sparse_matrix-alu/dsa/sparse_matrix-alu/sample_inputs/matrixfile3.txt")
+        matrix1 = SparseMatrix(filePath="../sample_inputs/matrixfile1.txt")
+        matrix2 = SparseMatrix(filePath="../sample_inputs/matrixfile3.txt")
 
         # Perform the selected operation
         if choice == 1:
             result = matrix1 + matrix2
-            output_file = "dsa-sparse_matrix-alu/dsa/sparse_matrix-alu/sample_inputs/result_add.txt"
+            output_file = "../sample_inputs/result_add.txt"
         elif choice == 2:
             result = matrix1 - matrix2
-            output_file = "dsa-sparse_matrix-alu/dsa/sparse_matrix-alu/sample_inputs/result_sub.txt"
+            output_file = "../sample_inputs/result_sub.txt"
         elif choice == 3:
             result = matrix1 * matrix2
-            output_file = "dsa-sparse_matrix-alu/dsa/sparse_matrix-alu/sample_inputs/result_mul.txt"
+            output_file = "../sample_inputs/result_mul.txt"
 
         # Save the result to a file
         result.to_file(output_file)
