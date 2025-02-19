@@ -161,7 +161,7 @@ def main():
 
         # Get the directory of the script
         base_dir = os.path.dirname(os.path.abspath(__file__))
-        # Navigate to the sample_inputs directory
+        # Navigate to the sample_inputs directory (one level up from src)
         input_dir = os.path.join(base_dir, "..", "sample_inputs")
 
         # Load matrices from files
