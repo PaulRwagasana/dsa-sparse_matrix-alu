@@ -1,192 +1,178 @@
-import os
 
 class SparseMatrix:
-    def __init__(self, numRows=None, numCols=None, filePath=None):
-        """
-        Constructor for SparseMatrix.
-        Can initialize either from dimensions or from a file.
-        """
-        print("Initializing SparseMatrix...")  # Debugging
-        if filePath:
-            self._load_from_file(filePath)
+    def __init__(self, num_rows=None, num_cols=None, matrix_file_path=None):
+        self.rows = 0
+        self.cols = 0
+        self.data = {}  # Dictionary to store (row, col): value
+
+        if matrix_file_path:
+            self.load_from_file(matrix_file_path)
+        elif num_rows is not None and num_cols is not None:
+            self.rows = num_rows
+            self.cols = num_cols
         else:
-            if numRows is None or numCols is None:
-                raise ValueError("Number of rows and columns must be provided.")
-            self.numRows = numRows
-            self.numCols = numCols
-            self.elements = {}  # Dictionary to store non-zero elements: (row, col) -> value
+            raise ValueError(
+                "Must provide either file path or row/col dimensions")
 
-    def _load_from_file(self, filePath):
-        """
-        Helper function to load a sparse matrix from a file.
-        """
-        print(f"Loading matrix from file: {filePath}")  # Debugging
-        self.elements = {}
+    def load_from_file(self, file_path):
         try:
-            with open(filePath, 'r') as file:
-                lines = file.readlines()
+            with open(file_path, 'r') as f:
+                lines = [line.strip() for line in f]  # Remove whitespace
+
+                self.rows = self.split_function(lines[0])
+                self.cols = self.split_function(lines[1])
+
+
+                for line in lines[2:]:
+                    if not line:
+                        continue
+                    line = line.replace(" ", "")
+                    if not (line.startswith('(') and line.endswith(')')):
+                        raise ValueError("Input file has wrong format")
+                    parts = self.manual_split(line[1:-1])
+                    if len(parts) != 3:
+                        raise ValueError("Input file has wrong format")
+                    row, col, value = self.convert_to_int(parts)
+                    self.set_element(row, col, value)
+
         except FileNotFoundError:
-            print(f"Error: File not found at {filePath}")  # Debugging
-            raise
+            raise FileNotFoundError(f"File not found: {file_path}")
+        except ValueError as e:
+            raise ValueError(f"Input file has wrong format: {e}")
+        
+    def manual_split(self, comma_separated_str):
+        parts = []
+        current = ""
+        for char in comma_separated_str:
+            if char == ",":
+                parts.append(current)
+                current = ""
+            else:
+                current += char
+        parts.append(current)  # Append the last part
+        return parts
 
-        # Remove whitespace and empty lines
-        lines = [line.strip() for line in lines if line.strip()]
 
-        # Read number of rows and columns
-        if not lines[0].startswith("rows=") or not lines[1].startswith("cols="):
-            raise ValueError("Input file has wrong format.")
+        
+    def convert_to_string(self, line):
+        if num == 0:
+            return "0"
+        result = ""
+        negative = num < 0
+        num = -num if negative else num
+        while num > 0:
+            result = chr((num % 10) + ord('0')) + result
+            num //= 10
+        return "-" + result if negative else result
+    
+    def split_function(self, line):
+        """Extracts the number after '=' in a line manually."""
+        found = False
+        num_str = ""
+        for char in line:
+            if found:
+                num_str += char
+            if char == '=':
+                found = True
+        return self.convert_to_int([num_str])[0]
+    
+    def convert_to_int(self, str_list):
+        """Manually converts a list of strings to integers."""
+        int_list = []
+        for s in str_list:
+            num = 0
+            sign = 1
+            if s[0] == '-':  # Handle negative numbers
+                sign = -1
+                s = s[1:]
+            for char in s:
+                num = num * 10 + (ord(char) - ord('0'))  # Convert character to integer
+            int_list.append(num * sign)
+        return int_list
 
-        self.numRows = int(lines[0].split('=')[1])
-        self.numCols = int(lines[1].split('=')[1])
+    def set_element(self, row, col, value):
+        self.data[(row, col)] = value
 
-        # Read elements
-        for line in lines[2:]:
-            if not (line.startswith('(') and line.endswith(')')):
-                raise ValueError("Input file has wrong format.")
+    def get_element(self, row, col):
+        if 0 <= row < self.rows and 0 <= col < self.cols:
+            return self.data.get((row, col), 0)  # Default to 0 if not found
+        else:
+            raise IndexError("Row or column index out of bounds")
 
-            # Extract row, column, and value
-            row, col, value = map(int, line.strip('()').split(','))
-            self.setElement(row, col, value)
+    def add(self, other):
+        if self.rows != other.rows or self.cols != other.cols:
+            raise ValueError(
+                "Matrices must have the same dimensions for addition")
+        result = SparseMatrix(self.rows, self.cols)
+        for row in range(self.rows):
+            for col in range(self.cols):
+                # print(self.get_element(row, col), other.get_element(row, col))
+                result.set_element(row, col, self.get_element(
+                    row, col) + other.get_element(row, col))
+        return result
 
-    def getElement(self, currRow, currCol):
-        """
-        Get the value at (currRow, currCol).
-        Returns 0 if the element is not stored (implicitly zero).
-        """
-        if currRow < 0 or currRow >= self.numRows or currCol < 0 or currCol >= self.numCols:
-            raise ValueError("Row or column index out of bounds.")
-        return self.elements.get((currRow, currCol), 0)
+    def subtract(self, other):
+        if self.rows != other.rows or self.cols != other.cols:
+            raise ValueError(
+                "Matrices must have the same dimensions for subtraction")
 
-    def setElement(self, currRow, currCol, value):
-        """
-        Set the value at (currRow, currCol).
-        If the value is zero, remove the element from storage.
-        """
-        if currRow < 0 or currRow >= self.numRows or currCol < 0 or currCol >= self.numCols:
-            raise ValueError("Row or column index out of bounds.")
+        result = SparseMatrix(self.rows, self.cols)
+        for row in range(self.rows):
+            for col in range(self.cols):
+                result.set_element(row, col, self.get_element(
+                    row, col) - other.get_element(row, col))
+        return result
 
-        if value != 0:
-            self.elements[(currRow, currCol)] = value
-        elif (currRow, currCol) in self.elements:
-            del self.elements[(currRow, currCol)]
+    def multiply(self, other):
+        if self.cols != other.rows:
+            raise ValueError(
+            "Number of columns in first matrix must be equal to number of rows in second matrix for multiplication"
+        )
+        
 
-    def __add__(self, other):
-        """
-        Add two sparse matrices.
-        """
-        if self.numRows != other.numRows or self.numCols != other.numCols:
-            raise ValueError("Matrices must have the same dimensions for addition.")
+        result = SparseMatrix(self.rows, other.cols)
 
-        result = SparseMatrix(self.numRows, self.numCols)
-
-        # Add elements from self
-        for (row, col), value in self.elements.items():
-            result.setElement(row, col, value)
-
-        # Add elements from other
-        for (row, col), value in other.elements.items():
-            result.setElement(row, col, result.getElement(row, col) + value)
+        for (i, k), val1 in self.data.items():  # Iterate only over nonzero elements
+            for j in range(other.cols):
+                val2 = other.get_element(k, j)
+                if val2 != 0:
+                    if (i, j) in result.data:
+                        result.data[(i, j)] += val1 * val2
+                    else:
+                        result.data[(i, j)] = val1 * val2
 
         return result
 
-    def __sub__(self, other):
-        """
-        Subtract two sparse matrices.
-        """
-        if self.numRows != other.numRows or self.numCols != other.numCols:
-            raise ValueError("Matrices must have the same dimensions for subtraction.")
+    
 
-        result = SparseMatrix(self.numRows, self.numCols)
-
-        # Add elements from self
-        for (row, col), value in self.elements.items():
-            result.setElement(row, col, value)
-
-        # Subtract elements from other
-        for (row, col), value in other.elements.items():
-            result.setElement(row, col, result.getElement(row, col) - value)
-
-        return result
-
-    def __mul__(self, other):
-        """
-        Multiply two sparse matrices.
-        """
-        if self.numCols != other.numRows:
-            raise ValueError("Number of columns in the first matrix must match the number of rows in the second matrix.")
-
-        result = SparseMatrix(self.numRows, other.numCols)
-
-        # Perform multiplication
-        for (i, k), v1 in self.elements.items():
-            for j in range(other.numCols):
-                v2 = other.getElement(k, j)
-                if v2 != 0:
-                    result.setElement(i, j, result.getElement(i, j) + v1 * v2)
-
-        return result
 
     def __str__(self):
+        matrix_str = ""
+        for i in range(self.rows):
+            row_str = ""
+            for j in range(self.cols):
+                row_str += self.convert_to_string(self.get_element(i, j)) + " "
+            matrix_str += row_str + "\n"
+        return matrix_str
+
+    def print_readable(self, max_rows=10, max_cols=10):
+        """Prints a readable representation of the sparse matrix.
+
+        Args:
+            max_rows (int, optional): Maximum number of rows to print. Defaults to 10.
+            max_cols (int, optional): Maximum number of columns to print. Defaults to 10.
         """
-        String representation of the sparse matrix.
-        """
-        return f"SparseMatrix({self.numRows}x{self.numCols}): {len(self.elements)} non-zero elements"
 
-    def to_file(self, filePath):
-        """
-        Save the sparse matrix to a file.
-        """
-        print(f"Saving result to file: {filePath}")  # Debugging
-        with open(filePath, 'w') as file:
-            file.write(f"rows={self.numRows}\n")
-            file.write(f"cols={self.numCols}\n")
-            for (row, col), value in sorted(self.elements.items()):
-                file.write(f"({row}, {col}, {value})\n")
+        if self.rows > max_rows or self.cols > max_cols:
+            print(
+                f"Matrix is large ({self.rows}x{self.cols}). Showing only top-left {max_rows}x{max_cols} elements.")
 
+        for i in range(min(self.rows, max_rows)):
+            row_str = ""
+            for j in range(min(self.cols, max_cols)):
+                row_str += str(self.get_element(i, j)).rjust(5) + \
+                    " "
+            print(row_str)
 
-def main():
-    """
-    Main function to interact with the user and perform matrix operations.
-    """
-    print("Starting program...")  # Debugging
-    try:
-        print("Select operation:")
-        print("1. Addition")
-        print("2. Subtraction")
-        print("3. Multiplication")
-
-        choice = int(input("Enter choice (1/2/3): "))
-        if choice not in [1, 2, 3]:
-            raise ValueError("Invalid choice. Please enter 1, 2, or 3.")
-
-        # Load matrices from files
-        base_dir = os.path.dirname(os.path.abspath(__file__))  # Get the directory of the script
-        input_dir = os.path.join(base_dir, "..", "sample_inputs")  # Navigate to the sample_inputs directory
-
-        matrix1 = SparseMatrix(filePath=os.path.join(input_dir, "matrixfile1.txt"))
-        matrix2 = SparseMatrix(filePath=os.path.join(input_dir, "matrixfile3.txt"))
-
-        # Perform the selected operation
-        if choice == 1:
-            result = matrix1 + matrix2
-            output_file = os.path.join(input_dir, "result_add.txt")
-        elif choice == 2:
-            result = matrix1 - matrix2
-            output_file = os.path.join(input_dir, "result_sub.txt")
-        elif choice == 3:
-            result = matrix1 * matrix2
-            output_file = os.path.join(input_dir, "result_mul.txt")
-
-        # Save the result to a file
-        result.to_file(output_file)
-        print(f"Operation completed. Result saved to {output_file}")
-
-    except ValueError as e:
-        print(f"Error: {e}")
-    except Exception as e:
-        print(f"An unexpected error occurred: {e}")
-
-
-if __name__ == "__main__":
-    print("Calling main()...")  # Debugging
-    main()
+        if self.rows > max_rows or self.cols > max_cols:
+            print("...")
