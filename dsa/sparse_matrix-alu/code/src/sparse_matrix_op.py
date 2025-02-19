@@ -3,9 +3,10 @@
 class SparseMatrix:
     def __init__(self, numRows=None, numCols=None, filePath=None):
         """
-        Constructor for our SparseMatrix.
-        We can initialize either from dimensions or from a file.
+        Constructor for SparseMatrix.
+        Can initialize either from dimensions or from a file.
         """
+        print("Initializing SparseMatrix...")  # Debugging
         if filePath:
             self._load_from_file(filePath)
         else:
@@ -19,9 +20,14 @@ class SparseMatrix:
         """
         Helper function to load a sparse matrix from a file.
         """
+        print(f"Loading matrix from file: {filePath}")  # Debugging
         self.elements = {}
-        with open(filePath, 'r') as file:
-            lines = file.readlines()
+        try:
+            with open(filePath, 'r') as file:
+                lines = file.readlines()
+        except FileNotFoundError:
+            print(f"Error: File not found at {filePath}")  # Debugging
+            raise
 
         # Remove whitespace and empty lines
         lines = [line.strip() for line in lines if line.strip()]
@@ -130,6 +136,7 @@ class SparseMatrix:
         """
         Save the sparse matrix to a file.
         """
+        print(f"Saving result to file: {filePath}")  # Debugging
         with open(filePath, 'w') as file:
             file.write(f"rows={self.numRows}\n")
             file.write(f"cols={self.numCols}\n")
@@ -139,32 +146,33 @@ class SparseMatrix:
 
 def main():
     """
-    Main function to perform matrix operations.
+    Main function to interact with the user and perform matrix operations.
     """
-    print("Select operation:")
-    print("1. Addition")
-    print("2. Subtraction")
-    print("3. Multiplication")
-
+    print("Starting program...")  # Debugging
     try:
+        print("Select operation:")
+        print("1. Addition")
+        print("2. Subtraction")
+        print("3. Multiplication")
+
         choice = int(input("Enter choice (1/2/3): "))
         if choice not in [1, 2, 3]:
             raise ValueError("Invalid choice. Please enter 1, 2, or 3.")
 
         # Load matrices from files
-        matrix1 = SparseMatrix(filePath="dsa/sparse_matrix-alu/sample_inputs/matrixfile1.txt")
-        matrix2 = SparseMatrix(filePath="dsa/sparse_matrix-alu/sample_inputs/matrixfile3.txt")
+        matrix1 = SparseMatrix(filePath="dsa-sparse_matrix-alu/dsa/sparse_matrix-alu/sample_inputs/matrixfile1.txt")
+        matrix2 = SparseMatrix(filePath="dsa-sparse_matrix-alu/dsa/sparse_matrix-alu/sample_inputs/matrixfile3.txt")
 
         # Perform the selected operation
         if choice == 1:
             result = matrix1 + matrix2
-            output_file = "dsa/sparse_matrix-alu/sample_inputs/result_add.txt"
+            output_file = "dsa-sparse_matrix-alu/dsa/sparse_matrix-alu/sample_inputs/result_add.txt"
         elif choice == 2:
             result = matrix1 - matrix2
-            output_file = "dsa/sparse_matrix-alu/sample_inputs/result_sub.txt"
+            output_file = "dsa-sparse_matrix-alu/dsa/sparse_matrix-alu/sample_inputs/result_sub.txt"
         elif choice == 3:
             result = matrix1 * matrix2
-            output_file = "dsa/sparse_matrix-alu/sample_inputs/result_mul.txt"
+            output_file = "dsa-sparse_matrix-alu/dsa/sparse_matrix-alu/sample_inputs/result_mul.txt"
 
         # Save the result to a file
         result.to_file(output_file)
@@ -177,4 +185,5 @@ def main():
 
 
 if __name__ == "__main__":
+    print("Calling main()...")  # Debugging
     main()
