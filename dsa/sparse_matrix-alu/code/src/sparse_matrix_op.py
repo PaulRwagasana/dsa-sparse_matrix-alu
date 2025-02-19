@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+import os
 
 class SparseMatrix:
     def __init__(self, numRows=None, numCols=None, filePath=None):
@@ -160,19 +160,22 @@ def main():
             raise ValueError("Invalid choice. Please enter 1, 2, or 3.")
 
         # Load matrices from files
-        matrix1 = SparseMatrix(filePath="dsa-sparse_matrix-alu/dsa/sparse_matrix-alu/sample_inputs/matrixfile1.txt")
-        matrix2 = SparseMatrix(filePath="dsa-sparse_matrix-alu/dsa/sparse_matrix-alu/sample_inputs/matrixfile3.txt")
+        base_dir = os.path.dirname(os.path.abspath(__file__))  # Get the directory of the script
+        input_dir = os.path.join(base_dir, "..", "sample_inputs")  # Navigate to the sample_inputs directory
+
+        matrix1 = SparseMatrix(filePath=os.path.join(input_dir, "matrixfile1.txt"))
+        matrix2 = SparseMatrix(filePath=os.path.join(input_dir, "matrixfile3.txt"))
 
         # Perform the selected operation
         if choice == 1:
             result = matrix1 + matrix2
-            output_file = "dsa-sparse_matrix-alu/dsa/sparse_matrix-alu/sample_inputs/result_add.txt"
+            output_file = os.path.join(input_dir, "result_add.txt")
         elif choice == 2:
             result = matrix1 - matrix2
-            output_file = "dsa-sparse_matrix-alu/dsa/sparse_matrix-alu/sample_inputs/result_sub.txt"
+            output_file = os.path.join(input_dir, "result_sub.txt")
         elif choice == 3:
             result = matrix1 * matrix2
-            output_file = "dsa-sparse_matrix-alu/dsa/sparse_matrix-alu/sample_inputs/result_mul.txt"
+            output_file = os.path.join(input_dir, "result_mul.txt")
 
         # Save the result to a file
         result.to_file(output_file)
