@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 class SparseMatrix:
     def __init__(self, numRows=None, numCols=None, filePath=None):
         """
