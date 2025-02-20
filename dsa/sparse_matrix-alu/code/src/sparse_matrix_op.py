@@ -38,6 +38,7 @@ class SparseMatrix:
 
         self.numRows = int(lines[0].split('=')[1])
         self.numCols = int(lines[1].split('=')[1])
+        print(f"Rows: {self.numRows}, Cols: {self.numCols}")  # Debugging
 
         # Read elements
         for line in lines[2:]:
@@ -46,6 +47,7 @@ class SparseMatrix:
 
             # Extract row, column, and value
             row, col, value = map(int, line.strip('()').split(','))
+            print(f"Reading element: ({row}, {col}, {value})")  # Debugging
             self.setElement(row, col, value)
 
     def getElement(self, currRow, currCol):
@@ -54,7 +56,7 @@ class SparseMatrix:
         Returns 0 if the element is not stored (implicitly zero).
         """
         if currRow < 0 or currRow >= self.numRows or currCol < 0 or currCol >= self.numCols:
-            raise ValueError("Row or column index out of bounds.")
+            raise ValueError(f"Row or column index out of bounds. Valid range: rows=[0, {self.numRows-1}], cols=[0, {self.numCols-1}]")
         return self.elements.get((currRow, currCol), 0)
 
     def setElement(self, currRow, currCol, value):
@@ -63,7 +65,7 @@ class SparseMatrix:
         If the value is zero, remove the element from storage.
         """
         if currRow < 0 or currRow >= self.numRows or currCol < 0 or currCol >= self.numCols:
-            raise ValueError("Row or column index out of bounds.")
+            raise ValueError(f"Row or column index out of bounds. Valid range: rows=[0, {self.numRows-1}], cols=[0, {self.numCols-1}]")
 
         if value != 0:
             self.elements[(currRow, currCol)] = value
@@ -195,7 +197,6 @@ def main():
         print(f"An unexpected error occurred: {e}")
 
 
-
 if __name__ == "__main__":
     print("Calling main()...")  # Debugging
-    main()  
+    main()
