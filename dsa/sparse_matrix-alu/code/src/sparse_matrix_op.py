@@ -193,3 +193,9 @@ def main():
         print(f"Error: {e}")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
+
+
+
+if __name__ == "__main__":
+    print("Calling main()...")  # Debugging
+    main()  
