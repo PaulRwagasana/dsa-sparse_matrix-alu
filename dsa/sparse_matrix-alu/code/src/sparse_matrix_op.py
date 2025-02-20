@@ -162,7 +162,11 @@ def main():
         # Get the directory of the script
         base_dir = os.path.dirname(os.path.abspath(__file__))
         # Navigate to the sample_inputs directory (one level up from src)
-        input_dir = os.path.join(base_dir, "..", "sample_inputs")
+        input_dir = os.path.join(base_dir, "..", "..", "sample_inputs")
+
+        # Ensure the input directory exists
+        if not os.path.exists(input_dir):
+            raise FileNotFoundError(f"Input directory not found: {input_dir}")
 
         # Load matrices from files
         matrix1 = SparseMatrix(filePath=os.path.join(input_dir, "matrixfile1.txt"))
@@ -185,10 +189,7 @@ def main():
 
     except ValueError as e:
         print(f"Error: {e}")
+    except FileNotFoundError as e:
+        print(f"Error: {e}")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
-
-
-if __name__ == "__main__":
-    print("Calling main()...")  # Debugging
-    main()
